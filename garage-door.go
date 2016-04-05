@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/stianeikeland/go-rpio"
 	"os"
 	"time"
+	// "log"
+	
 	"net/http"
+
+	"github.com/stianeikeland/go-rpio"
+    "github.com/melvinmt/firebase"
 )
 
 var (
@@ -13,7 +17,7 @@ var (
 	pin = rpio.Pin(17)
 )
 
-func main() {
+func mainDISABLED() {
 	// Unmap gpio memory when done
 	defer rpio.Close()
 
@@ -37,4 +41,49 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(time.Second / 5)
 	pin.High()
 
+}
+
+type Triggering struct {
+	Time uint64
+	Username string
+}
+
+
+func main() {
+    var err error
+
+    latestTriggeringUrl := "https://garage-opener.firebaseIO.com/latestTriggering"
+
+    // Can also be your Firebase secret: (CURRENTLY IS. THAT'S OKAY, BECAUSE THIS IS SITTING ON MY GARAGE MACHINE, AND EVENTUALLY ONLY IN BINARY, SO NOT WORRIED)
+    authToken := "TDNkOlwWlXMZqFaGntBVrRE819MbPrcZdsFRaO3K"
+
+    // Auth is optional:
+    // ref := firebase.NewReference(latestTriggeringUrl).Auth(authToken)
+
+    // Create the value.
+    // personName := PersonName{
+    //     First: "Fred",
+    //     Last:  "Swanson",
+    // }
+
+    // Write the value to Firebase.
+    // if err = ref.Write(personName); err != nil {
+    //     panic(err)
+    // }
+
+    // Now, we're going to retrieve the person.
+    // personlatestTriggeringUrl := "https://SampleChat.firebaseIO.com/users/fred"
+
+    // personRef := firebase.NewReference(personlatestTriggeringUrl).Export(false)
+    latestTriggeringRef := firebase.NewReference(latestTriggeringUrl).Auth(authToken).Export(false)
+
+    var latestTriggering *Triggering = &Triggering{}
+
+    if err = latestTriggeringRef.Value(latestTriggering); err != nil {
+        panic(err)
+    }
+
+    fmt.Println("let's see what we got:")
+    fmt.Println(latestTriggering.Time)
+    fmt.Println(latestTriggering.Username)
 }
