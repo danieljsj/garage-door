@@ -12,12 +12,39 @@ import (
     "github.com/melvinmt/firebase"
 )
 
-var (
-	// Use mcu pin 17, corresponds to physical pin 11 on the pi
-	pin = rpio.Pin(17)
-)
+var latestKnownTriggeringTime uint64
 
-func mainDISABLED() {
+func main() {
+	myinit()
+
+	// theoretically this should go forever, but for now we're not going to. don't want to make FB mad by accident
+	for i := 0; i < 10; i++ {
+		spoofLatestTriggering()
+
+		latestTriggering := getLatestTriggering()
+		if latestTriggering.Time > latestKnownTriggeringTime {
+			latestTriggering.Time = latestKnownTriggeringTime
+			fire()
+		}
+		time.Sleep(time.Second * 1)
+	}
+
+
+}
+
+func myinit() {
+	prepPins()
+	latestTriggering := getLatestTriggering()
+	latestKnownTriggeringTime = latestTriggering.Time
+}
+
+
+// GPIO CONTROL:
+
+// Use mcu pin 17, corresponds to physical pin 11 on the pi
+var pin = rpio.Pin(17)
+
+func prepPins() {
 	// Unmap gpio memory when done
 	defer rpio.Close()
 
@@ -30,18 +57,30 @@ func mainDISABLED() {
 	// Set pin to output mode as opposed to input
 	pin.Output()
 
+}
+func fire() {
+	pin.Low()
+	time.Sleep(time.Second / 5)
+	pin.High()
+}
+
+
+
+// WEBSERVER:
+
+func serve() {
 	http.HandleFunc("/trigger", triggerHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
 func triggerHandler(w http.ResponseWriter, r *http.Request) {
-
 	// r.URL.Path[1:]
-	pin.Low()
-	time.Sleep(time.Second / 5)
-	pin.High()
-
+	fire()
 }
+
+
+
+// FIREBASE:
 
 type Triggering struct {
 	Time uint64
@@ -49,7 +88,7 @@ type Triggering struct {
 }
 
 
-func main() {
+func getLatestTriggering() Triggering {
     var err error
 
     latestTriggeringUrl := "https://garage-opener.firebaseIO.com/latestTriggering"
@@ -74,16 +113,41 @@ func main() {
     // Now, we're going to retrieve the person.
     // personlatestTriggeringUrl := "https://SampleChat.firebaseIO.com/users/fred"
 
-    // personRef := firebase.NewReference(personlatestTriggeringUrl).Export(false)
     latestTriggeringRef := firebase.NewReference(latestTriggeringUrl).Auth(authToken).Export(false)
 
-    var latestTriggering *Triggering = &Triggering{}
+    latestTriggering := Triggering{}
 
     if err = latestTriggeringRef.Value(latestTriggering); err != nil {
         panic(err)
     }
 
-    fmt.Println("let's see what we got:")
+    fmt.Println("latestTriggering.Time")
     fmt.Println(latestTriggering.Time)
+    fmt.Println("latestTriggering.Username")
     fmt.Println(latestTriggering.Username)
+
+    return latestTriggering
+}
+
+func spoofLatestTriggering() bool {
+    var err error
+
+    latestTriggeringUrl := "https://garage-opener.firebaseIO.com/latestTriggering"
+
+    // Can also be your Firebase secret: (CURRENTLY IS. THAT'S OKAY, BECAUSE THIS IS SITTING ON MY GARAGE MACHINE, AND EVENTUALLY ONLY IN BINARY, SO NOT WORRIED)
+    authToken := "TDNkOlwWlXMZqFaGntBVrRE819MbPrcZdsFRaO3K"
+
+    latestTriggeringRef := firebase.NewReference(latestTriggeringUrl).Auth(authToken).Export(false)
+
+    // Create the value.
+    personName := Triggering{
+        Time: latestKnownTriggeringTime + uint64(1),
+        Username:  "rebekahsj",
+    }
+
+    // Write the value to Firebase.
+    if err = latestTriggeringRef.Write(personName); err != nil {
+        panic(err)
+    }
+    return false
 }
