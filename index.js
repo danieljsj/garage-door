@@ -23,5 +23,5 @@ firebase.database().ref('triggerings').on('child_added', function(snapshot){
 });
 
 function trigger(){
-	console.log("TRIGGETING THE THING!");
+	console.log("TRIGGERING THE THING!");
 }
