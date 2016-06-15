@@ -5,6 +5,18 @@ firebase.initializeApp({
   databaseURL: "https://garage-67a27.firebaseio.com"
 });
 
-firebase.database().ref().on('value', function(snapshot){
-	console.log(snapshot.val());
+var triggerTimeoutId;
+firebase.database().ref('triggerings').on('child_added', function(snapshot){
+	
+	console.log('snapshot.val()',snapshot.val());
+	
+	clearTimeout(triggerTimeoutId);
+	triggerTimeoutId = setTimeout(function(){
+		trigger();
+	},0);
+
 });
+
+function trigger(){
+	console.log("TRIGGETING THE THING!");
+}
