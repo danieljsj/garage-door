@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/danieljsj/garage-door/issues"
   },
-  "homepage": "https://github.com/danieljsj/garage-door#readme"
+  "homepage": "https://github.com/danieljsj/garage-door#readme",
+  "dependencies": {
+    "firebase": "^3.0.5"
+  }
 }
