@@ -30,7 +30,7 @@ function trigger(){
 	//console.log("TRIGGERING THE THING!");
 	
 	gpio.write(11,false,function(err){
-		if (err) throw err;
+		if (err) { console.log("\n\n\nDID YOU FORGET TO RUN AS SUDO???\n\n\n"); throw err; }
 		//console.log("Turned 11 low, light on");
 		clearTimeout(shutoffTimeoutId);
 		shutoffTimeoutId = setTimeout(function(){
@@ -58,7 +58,7 @@ function closePins() {
 
 
 
-
+/*
 process.stdin.resume(); //so the program will not close instantly
 
 function exitHandler(options, err) {
@@ -76,3 +76,4 @@ process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 //catches uncaught exceptions
 process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
+*/
