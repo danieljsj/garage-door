@@ -22,14 +22,14 @@ gpio.on('export', function(channel) {
     console.log('Channel set: ' + channel);
 });
  
-gpio.setup(7, gpio.DIR_OUT, write);
+gpio.setup(7, gpio.DIR_OUT);
 gpio.setup(15, gpio.DIR_OUT); 
-gpio.setup(11, gpio.DIR_OUT);
+gpio.setup(11, gpio.DIR_OUT, write);
 gpio.setup(16, gpio.DIR_OUT, pause);
 
 function write() {
 	
-	gpio.write(11, true, function(err) {
+	gpio.write(11, false, function(err) {
 		if (err) throw err;
 		console.log("WROTE!");
 	});
@@ -37,7 +37,7 @@ function write() {
 }
  
 function pause() {
-    setTimeout(closePins, 1000);
+    setTimeout(closePins, 2000);
 }
  
 function closePins() {
@@ -52,7 +52,7 @@ function closePins() {
 
 
 ///////////////////////// NOTE: THIS WASN'T WORKING UNLESS I WAS RUNNING AS ROOT.
-
+/*
 was getting: 
 
 setEdge398(later) { [Error: EACCES: permission denied, open '/sys/class/gpio/gpio4/edge']
@@ -69,7 +69,7 @@ here's a ref:  https://github.com/raspberrypi/linux/issues/1117
 
 here's rpi-gpio.js file I was using to debug; it has LOTS of console logs for me to narrow down the issue and actually get a log from it... sad day that the library doesn't pass that error up!!! TODO - make a cool pull request!!
 
-
+*/
 
 
 
